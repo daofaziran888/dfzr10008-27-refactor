@@ -6,7 +6,10 @@ from __future__ import annotations
 
 from typing import Any
 
-from app.seed import SEED_ROWS
+from app.seed import SCENE_SNAPSHOT_ROWS, SEED_ROWS
+
+# 内部表不参与业务模块统计：保存发布快照与下游读取记录。
+INTERNAL_TABLES = ("scene_version", "scene_read")
 
 
 class Store:
@@ -14,11 +17,17 @@ class Store:
         self._tables: dict[str, list[dict[str, Any]]] = {
             name: [dict(row) for row in rows] for name, rows in SEED_ROWS.items()
         }
+        self._internal: dict[str, list[dict[str, Any]]] = {
+            "scene_version": [dict(row) for row in SCENE_SNAPSHOT_ROWS],
+            "scene_read": [],
+        }
 
     def module_names(self) -> list[str]:
         return sorted(self._tables)
 
     def rows(self, module: str) -> list[dict[str, Any]]:
+        if module in self._internal:
+            return self._internal[module]
         return self._tables.setdefault(module, [])
 
     def find(self, module: str, entry_id: int) -> dict[str, Any] | None:

@@ -28,6 +28,15 @@ class EntryPayload(BaseModel):
     remark: str | None = None
 
 
+class SceneActionPayload(EntryPayload):
+    """场景模板动作请求：兼容 ``{"action": ...}`` 与 ``{"values": {"action": ...}}``。"""
+
+    action: str | None = None
+
+    def resolve_action(self) -> str:
+        return str(self.action or self.values.get("action") or "").strip()
+
+
 
 class ProductEntry(BaseModel):
     """数据产品明细结构。"""
